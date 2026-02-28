@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { apiFetch } from './lib/api';
+import NoiseTexture from './components/NoiseTexture';
 import Navbar from './components/Navbar';
 import LandingPage from './components/LandingPage';
 import PrivacyModal from './components/PrivacyModal';
@@ -7,23 +9,33 @@ import AnalyzeModal from './components/AnalyzeModal';
 import AnalysisResults from './components/AnalysisResults';
 import ChatFollowUp from './components/ChatFollowUp';
 import AuthModal from './components/AuthModal';
+import MethodologyPage from './pages/MethodologyPage';
+import GlossaryPage from './pages/GlossaryPage';
+import DashboardPage from './pages/DashboardPage';
+
+/* Scroll to top on route change */
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+}
 
 export default function App() {
-  // Auth state
+  // ─── Auth state (PRESERVED) ───
   const [user, setUser] = useState(null);
 
-  // Modal state
+  // ─── Modal state (PRESERVED) ───
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showAnalyzeModal, setShowAnalyzeModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState('login');
 
-  // Analysis state
+  // ─── Analysis state (PRESERVED) ───
   const [analysisResult, setAnalysisResult] = useState(null);
   const [analysisRole, setAnalysisRole] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
 
-  // Persist user session from localStorage
+  // ─── Persist user session from localStorage (PRESERVED) ───
   useEffect(() => {
     const stored = localStorage.getItem('la_user');
     if (stored) {
@@ -35,7 +47,7 @@ export default function App() {
     }
   }, []);
 
-  // ─── Handlers ───
+  // ═══ Handlers (ALL PRESERVED) ═══
 
   const handleCTAClick = () => {
     setShowPrivacyModal(true);
@@ -102,22 +114,15 @@ export default function App() {
     setShowPrivacyModal(true);
   };
 
-  return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar
-        user={user}
-        onLoginClick={openLogin}
-        onSignupClick={openSignup}
-        onLogout={handleLogout}
-      />
-
-      {/* Main content */}
+  // ─── Home: Landing or Results (PRESERVED LOGIC) ───
+  const HomePage = () => (
+    <>
       {!analysisResult ? (
         <LandingPage onAnalyzeClick={handleCTAClick} />
       ) : (
         <>
-          {/* Back / new analysis button */}
-          <div className="flex justify-center pt-6">
+          {/* Back button */}
+          <div className="flex justify-center pt-8 relative z-10">
             <button onClick={handleNewAnalysis} className="btn-secondary text-sm">
               ← Nuevo Análisis
             </button>
@@ -132,8 +137,33 @@ export default function App() {
           />
         </>
       )}
+    </>
+  );
 
-      {/* Modals */}
+  return (
+    <BrowserRouter>
+      <ScrollToTop />
+      <NoiseTexture />
+
+      <div className="min-h-screen flex flex-col relative">
+        <Navbar
+          user={user}
+          onLoginClick={openLogin}
+          onSignupClick={openSignup}
+          onLogout={handleLogout}
+        />
+
+        <main className="flex-1">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/metodologia" element={<MethodologyPage />} />
+            <Route path="/glosario" element={<GlossaryPage />} />
+            <Route path="/dashboard" element={<DashboardPage user={user} onLoginClick={openLogin} />} />
+          </Routes>
+        </main>
+      </div>
+
+      {/* ─── Modals (PRESERVED) ─── */}
       {showPrivacyModal && (
         <PrivacyModal
           onAccept={handlePrivacyAccept}
@@ -156,6 +186,6 @@ export default function App() {
           onAuth={handleAuth}
         />
       )}
-    </div>
+    </BrowserRouter>
   );
 }
