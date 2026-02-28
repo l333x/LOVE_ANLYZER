@@ -9,6 +9,7 @@ import AnalyzeModal from './components/AnalyzeModal';
 import AnalysisResults from './components/AnalysisResults';
 import ChatFollowUp from './components/ChatFollowUp';
 import AuthModal from './components/AuthModal';
+import ProfileModal from './components/ProfileModal';
 import MethodologyPage from './pages/MethodologyPage';
 import GlossaryPage from './pages/GlossaryPage';
 import DashboardPage from './pages/DashboardPage';
@@ -20,15 +21,28 @@ function ScrollToTop() {
   return null;
 }
 
+/* Floating geometric shapes background */
+function FloatingGeometry() {
+  return (
+    <>
+      <div className="geo-shape geo-circle" style={{ width: 120, height: 120, top: '15%', left: '5%', animationDelay: '0s' }} />
+      <div className="geo-shape geo-diamond" style={{ width: 80, height: 80, top: '60%', right: '8%', animationDelay: '5s' }} />
+      <div className="geo-shape geo-circle" style={{ width: 50, height: 50, bottom: '20%', left: '45%', animationDelay: '10s' }} />
+      <div className="geo-shape" style={{ width: 100, height: 100, top: '80%', left: '15%', animationDelay: '15s', borderRadius: '0.5rem' }} />
+    </>
+  );
+}
+
 export default function App() {
   // ─── Auth state (PRESERVED) ───
   const [user, setUser] = useState(null);
 
-  // ─── Modal state (PRESERVED) ───
+  // ─── Modal state (PRESERVED + EXPANDED) ───
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showAnalyzeModal, setShowAnalyzeModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState('login');
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   // ─── Analysis state (PRESERVED) ───
   const [analysisResult, setAnalysisResult] = useState(null);
@@ -96,6 +110,7 @@ export default function App() {
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem('la_user');
+    setShowProfileModal(false);
   };
 
   const openLogin = () => {
@@ -114,13 +129,20 @@ export default function App() {
     setShowPrivacyModal(true);
   };
 
+  // ─── NEW: Resume analysis from dashboard history ───
+  const handleResumeAnalysis = ({ role, result, chatHistory }) => {
+    setAnalysisResult(result);
+    setAnalysisRole(role);
+    // chatHistory is loaded into ChatFollowUp via the analysis context
+  };
+
   // ─── Home: Landing or Results (PRESERVED LOGIC) ───
   const HomePage = () => (
     <>
       {!analysisResult ? (
         <LandingPage onAnalyzeClick={handleCTAClick} />
       ) : (
-        <>
+        <div className="page-enter">
           {/* Back button */}
           <div className="flex justify-center pt-8 relative z-10">
             <button onClick={handleNewAnalysis} className="btn-secondary text-sm">
@@ -135,7 +157,7 @@ export default function App() {
             analysis={analysisResult}
             onAuthPrompt={openLogin}
           />
-        </>
+        </div>
       )}
     </>
   );
@@ -143,7 +165,11 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+
+      {/* ── Dynamic Background Layer ── */}
+      <div className="mesh-bg" />
       <NoiseTexture />
+      <FloatingGeometry />
 
       <div className="min-h-screen flex flex-col relative">
         <Navbar
@@ -151,6 +177,7 @@ export default function App() {
           onLoginClick={openLogin}
           onSignupClick={openSignup}
           onLogout={handleLogout}
+          onProfileClick={() => setShowProfileModal(true)}
         />
 
         <main className="flex-1">
@@ -158,12 +185,21 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/metodologia" element={<MethodologyPage />} />
             <Route path="/glosario" element={<GlossaryPage />} />
-            <Route path="/dashboard" element={<DashboardPage user={user} onLoginClick={openLogin} />} />
+            <Route
+              path="/dashboard"
+              element={
+                <DashboardPage
+                  user={user}
+                  onLoginClick={openLogin}
+                  onResumeAnalysis={handleResumeAnalysis}
+                />
+              }
+            />
           </Routes>
         </main>
       </div>
 
-      {/* ─── Modals (PRESERVED) ─── */}
+      {/* ─── Modals (PRESERVED + EXPANDED) ─── */}
       {showPrivacyModal && (
         <PrivacyModal
           onAccept={handlePrivacyAccept}
@@ -184,6 +220,14 @@ export default function App() {
           mode={authModalMode}
           onClose={() => setShowAuthModal(false)}
           onAuth={handleAuth}
+        />
+      )}
+
+      {showProfileModal && (
+        <ProfileModal
+          user={user}
+          onClose={() => setShowProfileModal(false)}
+          onLogout={handleLogout}
         />
       )}
     </BrowserRouter>

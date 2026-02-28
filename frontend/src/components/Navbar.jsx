@@ -7,9 +7,11 @@ const NAV_LINKS = [
     { to: '/glosario', label: 'Glosario Tóxico' },
 ];
 
-export default function Navbar({ user, onLoginClick, onSignupClick, onLogout }) {
+export default function Navbar({ user, onLoginClick, onSignupClick, onLogout, onProfileClick }) {
     const [menuOpen, setMenuOpen] = useState(false);
     const location = useLocation();
+
+    const initial = user?.email?.charAt(0)?.toUpperCase() || '?';
 
     return (
         <>
@@ -55,7 +57,18 @@ export default function Navbar({ user, onLoginClick, onSignupClick, onLogout }) 
                 <div className="hidden md:flex items-center gap-3">
                     {user ? (
                         <>
-                            <span className="text-xs text-white/40 truncate max-w-[140px]">{user.email}</span>
+                            {/* Profile avatar button */}
+                            <button
+                                onClick={onProfileClick}
+                                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-sans-heavy font-bold text-white transition-all hover:scale-110 hover:shadow-lg"
+                                style={{
+                                    background: 'linear-gradient(135deg, var(--pink), var(--electric))',
+                                    boxShadow: '0 0 15px rgba(255,45,123,0.2)',
+                                }}
+                                title={user.email}
+                            >
+                                {initial}
+                            </button>
                             <button onClick={onLogout} className="btn-secondary text-xs">Salir</button>
                         </>
                     ) : (
@@ -95,13 +108,21 @@ export default function Navbar({ user, onLoginClick, onSignupClick, onLogout }) 
                 ))}
 
                 {user && (
-                    <Link
-                        to="/dashboard"
-                        onClick={() => setMenuOpen(false)}
-                        className="text-3xl font-sans-heavy font-bold tracking-tighter text-white no-underline hover:opacity-70 transition-opacity"
-                    >
-                        Mi Historial
-                    </Link>
+                    <>
+                        <Link
+                            to="/dashboard"
+                            onClick={() => setMenuOpen(false)}
+                            className="text-3xl font-sans-heavy font-bold tracking-tighter text-white no-underline hover:opacity-70 transition-opacity"
+                        >
+                            Mi Historial
+                        </Link>
+                        <button
+                            onClick={() => { onProfileClick(); setMenuOpen(false); }}
+                            className="text-xl font-sans-heavy font-bold tracking-tighter text-white/60 no-underline hover:opacity-70 transition-opacity"
+                        >
+                            👤 Mi Perfil
+                        </button>
+                    </>
                 )}
 
                 <div className="flex flex-col items-center gap-3 mt-6">

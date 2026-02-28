@@ -244,6 +244,34 @@ def chat_followup():
 
 
 # ──────────────────────────────────────────────
+# Endpoints — Chat History Persistence
+# ──────────────────────────────────────────────
+
+@app.route("/api/chat/save", methods=["POST"])
+@require_auth
+def save_chat_history():
+    """Saves cloud chat history for a specific analysis."""
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "El cuerpo de la petición es requerido."}), 400
+
+    analysis_id = data.get("analysis_id")
+    chat_history = data.get("chat_history", [])
+
+    if not analysis_id:
+        return jsonify({"error": "El campo 'analysis_id' es obligatorio."}), 400
+
+    user = request.user
+    try:
+        supabase.table("analyses").update({
+            "chat_history": chat_history,
+        }).eq("id", analysis_id).eq("user_id", user["id"]).execute()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ──────────────────────────────────────────────
 # Endpoints — Autenticación (proxy a Supabase)
 # ──────────────────────────────────────────────
 
