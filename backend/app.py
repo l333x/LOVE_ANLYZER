@@ -23,8 +23,8 @@ load_dotenv()
 app = Flask(__name__)
 
 # CORS: permite localhost en dev y la URL de producción (Vercel)
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
-allowed_origins = ["http://localhost:5173"]
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173", "https://love-anlyzer.vercel.app")
+allowed_origins = ["http://localhost:5173", "https://love-anlyzer.vercel.app"]
 if FRONTEND_URL not in allowed_origins:
     allowed_origins.append(FRONTEND_URL)
 CORS(app, origins=allowed_origins, supports_credentials=True)
